@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import { calculateWinner } from "./helper";
+
 
 function Square(props) {
   return (
@@ -23,7 +23,11 @@ class Board extends React.Component {
   handleClick(i) {
     // Take a copy of the existing state
     const squares = { ...this.state.squares };
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
+    // return early by ignoring a click if someone has won the game or if a Square is already filled
+    if (calculateWinner(squares) || squares[i]) {
+      return;
+    }
+    squares[i] = this.state.xIsNext ? "X" : "O";
     // Set the new squares object to state
     this.setState({
       squares: squares,
@@ -31,12 +35,19 @@ class Board extends React.Component {
     });
   }
 
+
   renderSquare = i => (
     <Square value={this.state.squares[i]} onClick={() => this.handleClick(i)} />
   );
 
   render() {
-    const status = "Next Player: " + (this.state.xIsNext ? 'X' : 'O');
+    const winner = calculateWinner(this.state.squares);
+    let status;
+    if (winner) {
+      status = "Winner: " + winner;
+    } else {
+      status = "Next player: " + (this.state.xIsNext ? "X" : "O");
+    }
 
     return (
       <div>
@@ -77,3 +88,23 @@ class Game extends React.Component {
 }
 
 ReactDOM.render(<Game />, document.getElementById("root"));
+
+function calculateWinner(squares) {
+    const lines = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+    ];
+    for (let i = 0; i < lines.length; i++) {
+        const [a, b, c] = lines[i];
+        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+            return squares[a];
+        }
+    }
+    return null;
+}
